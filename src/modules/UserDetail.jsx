@@ -201,14 +201,18 @@ const UserDetail = () => {
       dataIndex: "dealType",
       key: "dealType",
       render: (dealType) => {
-        const type = dealType || "SELL";
+        const type = (dealType || "SELL").toUpperCase();
         const map = {
           SELL: { label: "Sotish", color: "green", icon: "🏷️" },
           RENT_OUT: { label: "Ijara (Berish)", color: "blue", icon: "🔑" },
+          DAILY_RENT: { label: "Kunlik ijara", color: "cyan", icon: "📅" },
           BUY: { label: "Sotib olish", color: "orange", icon: "🛒" },
           RENT_IN: { label: "Ijara (Olish)", color: "purple", icon: "🏠" },
+          INSTALLMENT: { label: "Bo'lib to'lash", color: "geekblue", icon: "💳" },
+          VIPKUP: { label: "Vipkup", color: "teal", icon: "🤝" },
+          EXCHANGE: { label: "Barter", color: "magenta", icon: "🔄" },
         };
-        const item = map[type] || map.SELL;
+        const item = map[type] || { label: type.replace(/_/g, " "), color: "default", icon: "📌" };
         return <Tag color={item.color}>{item.icon} {item.label}</Tag>;
       },
     },

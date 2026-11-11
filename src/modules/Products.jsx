@@ -98,7 +98,7 @@ const STATUS_OPTIONS = Object.entries(STATUS_CONFIG).map(([value, conf]) => ({
   textColor: conf.textColor,
 }));
 
-const DEAL_TYPE_CONFIG = {
+export const DEAL_TYPE_CONFIG = {
   SELL: {
     label: "Sotish",
     badge: "Sotiladi",
@@ -112,6 +112,13 @@ const DEAL_TYPE_CONFIG = {
     icon: "🔑",
     textColor: "text-blue-700",
     bgColor: "bg-blue-50 border-blue-200",
+  },
+  DAILY_RENT: {
+    label: "Kunlik ijara",
+    badge: "Kunlik ijara",
+    icon: "📅",
+    textColor: "text-cyan-700",
+    bgColor: "bg-cyan-50 border-cyan-200",
   },
   BUY: {
     label: "Sotib olish",
@@ -127,14 +134,52 @@ const DEAL_TYPE_CONFIG = {
     textColor: "text-purple-700",
     bgColor: "bg-purple-50 border-purple-200",
   },
+  INSTALLMENT: {
+    label: "Bo'lib to'lash",
+    badge: "Bo'lib to'lash",
+    icon: "💳",
+    textColor: "text-indigo-700",
+    bgColor: "bg-indigo-50 border-indigo-200",
+  },
+  VIPKUP: {
+    label: "Vipkup",
+    badge: "Vipkup",
+    icon: "🤝",
+    textColor: "text-teal-700",
+    bgColor: "bg-teal-50 border-teal-200",
+  },
+  EXCHANGE: {
+    label: "Barter / Almashish",
+    badge: "Barter",
+    icon: "🔄",
+    textColor: "text-pink-700",
+    bgColor: "bg-pink-50 border-pink-200",
+  },
+};
+
+export const getDealTypeConfig = (type) => {
+  if (!type) return DEAL_TYPE_CONFIG.SELL;
+  const upper = type.toString().trim().toUpperCase();
+  if (DEAL_TYPE_CONFIG[upper]) return DEAL_TYPE_CONFIG[upper];
+  return {
+    label: type.replace(/_/g, " "),
+    badge: type,
+    icon: "📌",
+    textColor: "text-indigo-700",
+    bgColor: "bg-indigo-50 border-indigo-200",
+  };
 };
 
 const DEAL_TYPE_OPTIONS = [
   { value: "all", label: "Barcha e'lon turlari" },
   { value: "SELL", label: "🏷️ Sotish" },
   { value: "RENT_OUT", label: "🔑 Ijaraga berish" },
+  { value: "DAILY_RENT", label: "📅 Kunlik ijara" },
   { value: "BUY", label: "🛒 Sotib olish" },
   { value: "RENT_IN", label: "🏠 Ijaraga olish" },
+  { value: "INSTALLMENT", label: "💳 Bo'lib to'lash" },
+  { value: "VIPKUP", label: "🤝 Vipkup" },
+  { value: "EXCHANGE", label: "🔄 Barter / Almashish" },
 ];
 
 const checkerboardStyle = {
@@ -618,11 +663,14 @@ const Products = () => {
                   <Layers className="w-3 h-3 text-purple-500 flex-shrink-0" />
                   {record.category?.name || "Kategoriyasiz"}
                 </span>
-                {record.dealType && record.dealType !== "SELL" && (
-                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${DEAL_TYPE_CONFIG[record.dealType]?.bgColor || "bg-blue-50"} ${DEAL_TYPE_CONFIG[record.dealType]?.textColor || "text-blue-700"}`}>
-                    {DEAL_TYPE_CONFIG[record.dealType]?.icon} {DEAL_TYPE_CONFIG[record.dealType]?.label}
-                  </span>
-                )}
+                {record.dealType && record.dealType !== "SELL" && (() => {
+                  const cfg = getDealTypeConfig(record.dealType);
+                  return (
+                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${cfg.bgColor || "bg-blue-50"} ${cfg.textColor || "text-blue-700"}`}>
+                      {cfg.icon} {cfg.label}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -635,8 +683,7 @@ const Products = () => {
       key: "dealType",
       width: 145,
       render: (dealType) => {
-        const type = dealType || "SELL";
-        const cfg = DEAL_TYPE_CONFIG[type] || DEAL_TYPE_CONFIG.SELL;
+        const cfg = getDealTypeConfig(dealType);
         return (
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${cfg.bgColor} ${cfg.textColor}`}>
             <span>{cfg.icon}</span>
