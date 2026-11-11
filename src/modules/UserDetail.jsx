@@ -38,16 +38,36 @@ import {
   MessageOutlined,
   GlobalOutlined,
   AppstoreOutlined,
+  KeyOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import ProductReference from "../components/ProductReference";
 import UserReference from "../components/UserReference";
 import StatusBadge from "../components/StatusBadge";
+import AdminCredentialsModal from "../components/AdminCredentialsModal";
 
 const UserDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Admin me query
+  const { data: meData } = useQuery({
+    queryKey: ["admin-me"],
+    queryFn: async () => {
+      try {
+        const res = await api.get("/admin/auth/me");
+        return res.data?.content || res.data;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 60000,
+  });
+  const currentAdminRole = meData?.role || meData?.content?.role || "ADMIN";
+
+  // Credentials modal state
+  const [editCredsModalOpen, setEditCredsModalOpen] = useState(false);
 
   // Message modal state
   const [msgModalOpen, setMsgModalOpen] = useState(false);
@@ -533,6 +553,13 @@ const UserDetail = () => {
             {/* Actions */}
             <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
               <Button
+                icon={<KeyOutlined />}
+                onClick={() => setEditCredsModalOpen(true)}
+                className="!rounded-lg font-semibold h-9 !text-amber-700 !border-amber-200 hover:!bg-amber-50 text-xs flex items-center justify-center gap-1.5"
+              >
+                Login / Parol / Rolni O'zgartirish
+              </Button>
+              <Button
                 type="primary"
                 icon={<SendOutlined />}
                 onClick={() => setMsgModalOpen(true)}
@@ -782,6 +809,18 @@ const UserDetail = () => {
           </div>
         </div>
       </Modal>
+
+      <AdminCredentialsModal
+        visible={editCredsModalOpen}
+        onClose={() => setEditCredsModalOpen(false)}
+        onSuccess={() => {
+          refetch();
+          queryClient.invalidateQueries({ queryKey: ["users"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+        }}
+        user={user}
+        currentAdminRole={currentAdminRole}
+      />
     </div>
   );
 };

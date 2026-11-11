@@ -369,6 +369,7 @@ const CategoryPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [quickDealTypeCategory, setQuickDealTypeCategory] = useState(null);
 
   const [categoryData, setCategoryData] = useState(initCategory);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -942,26 +943,44 @@ const CategoryPage = () => {
         ),
     },
     {
-      title: "E'lon turlari",
+      title: "E'lon / Sotuv turlari",
       dataIndex: "dealTypes",
-      width: 160,
-      render: (types) =>
-        Array.isArray(types) && types.length > 0 ? (
-          <div className="flex flex-wrap gap-1 max-w-[180px]">
-            {types.slice(0, 2).map((t, idx) => (
-              <Tag key={idx} color="blue" className="!text-[11px] !m-0 !px-1.5 !py-0.5">
-                {t.label || t.key}
-              </Tag>
-            ))}
-            {types.length > 2 && (
-              <Tag className="!text-[10px] !m-0 !px-1 text-slate-500 bg-slate-100">
-                +{types.length - 2}
-              </Tag>
+      width: 220,
+      render: (types, cat) => (
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex flex-wrap gap-1 max-w-[140px]">
+            {Array.isArray(types) && types.length > 0 ? (
+              <>
+                {types.slice(0, 2).map((t, idx) => (
+                  <Tag key={idx} color="blue" className="!text-[11px] !m-0 !px-1.5 !py-0.5">
+                    {t.label || t.key}
+                  </Tag>
+                ))}
+                {types.length > 2 && (
+                  <Tag className="!text-[10px] !m-0 !px-1 text-slate-500 bg-slate-100">
+                    +{types.length - 2}
+                  </Tag>
+                )}
+              </>
+            ) : (
+              <span className="text-slate-400 text-xs italic">Standart / Meros</span>
             )}
           </div>
-        ) : (
-          <span className="text-slate-400 text-xs italic">Standart / Meros</span>
-        ),
+          <Button
+            size="small"
+            type="dashed"
+            className="!rounded-lg !text-xs !px-2 font-semibold text-indigo-600 hover:text-indigo-800 shrink-0"
+            onClick={() =>
+              setQuickDealTypeCategory({
+                ...cat,
+                dealTypes: Array.isArray(cat.dealTypes) ? [...cat.dealTypes] : [],
+              })
+            }
+          >
+            Sozlash
+          </Button>
+        </div>
+      ),
     },
     {
       title: "Amallar",
@@ -1723,6 +1742,47 @@ const CategoryPage = () => {
               )}
             </Form.Item>
           </Form>
+        )}
+      </Modal>
+
+      {/* Quick Deal Types Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            <span className="font-black text-slate-900">
+              {quickDealTypeCategory?.name} — E'lon / Sotuv Turlari
+            </span>
+          </div>
+        }
+        open={Boolean(quickDealTypeCategory)}
+        onCancel={() => setQuickDealTypeCategory(null)}
+        onOk={() => {
+          if (!quickDealTypeCategory) return;
+          updateMutation.mutate({
+            id: quickDealTypeCategory.id,
+            dealTypes: Array.isArray(quickDealTypeCategory.dealTypes) ? quickDealTypeCategory.dealTypes : [],
+          });
+          setQuickDealTypeCategory(null);
+        }}
+        confirmLoading={updateMutation.isPending}
+        okText="Saqlash"
+        cancelText="Bekor"
+        width={560}
+        className="!rounded-3xl"
+      >
+        {quickDealTypeCategory && (
+          <div className="py-2 space-y-4">
+            <p className="text-xs text-slate-500">
+              <strong>"{quickDealTypeCategory.name}"</strong> kategoriyasida e'lon berishda ko'rinadigan sotuv/bitim turlarini belgilang:
+            </p>
+            <CategoryDealTypesEditor
+              value={quickDealTypeCategory.dealTypes}
+              onChange={(dealTypes) =>
+                setQuickDealTypeCategory({ ...quickDealTypeCategory, dealTypes })
+              }
+            />
+          </div>
         )}
       </Modal>
 

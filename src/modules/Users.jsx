@@ -44,8 +44,12 @@ import {
   Lock,
   ShoppingBag,
   Store,
+  Key,
+  UserPlus,
 } from "lucide-react";
 import { CompactStatCard } from "../components/CompactStatCard";
+import CreateAdminModal from "../components/CreateAdminModal";
+import AdminCredentialsModal from "../components/AdminCredentialsModal";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -84,7 +88,15 @@ const Users = () => {
   // Modals state
   const [messageModalVisible, setMessageModalVisible] = useState(false);
   const [moderationModalVisible, setModerationModalVisible] = useState(false);
+  const [createAdminModalVisible, setCreateAdminModalVisible] = useState(false);
+  const [editCredsModalVisible, setEditCredsModalVisible] = useState(false);
+  const [userForCreds, setUserForCreds] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  const openEditCredsModal = (user) => {
+    setUserForCreds(user);
+    setEditCredsModalVisible(true);
+  };
 
   // Direct Message states
   const [msgTitle, setMsgTitle] = useState("Kelishamiz.uz Xabarnomasi");
@@ -536,10 +548,23 @@ const Users = () => {
     {
       title: "Amallar",
       key: "actions",
-      width: 140,
+      width: 165,
       fixed: "right",
       render: (_, record) => (
         <div className="flex items-center gap-1">
+          {(currentAdminRole === UserRole.SUPER_ADMIN || currentAdminRole === UserRole.ADMIN) && (
+            <Tooltip title="Login, Parol va Rolni boshqarish">
+              <button
+                type="button"
+                aria-label="Hisobni sozlash"
+                onClick={() => openEditCredsModal(record)}
+                className="btn-action-neutral hover:!text-amber-700 hover:!bg-amber-50"
+              >
+                <Key className="w-3.5 h-3.5" />
+              </button>
+            </Tooltip>
+          )}
+
           <Tooltip title="Foydalanuvchiga xabar (Push) yuborish">
             <button
               type="button"
@@ -615,18 +640,31 @@ const Users = () => {
           </p>
         </div>
 
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Ism, telefon yoki ID..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
-            className="pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 w-64"
-          />
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Ism, telefon yoki ID..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 w-64"
+            />
+          </div>
+
+          {(currentAdminRole === UserRole.SUPER_ADMIN || currentAdminRole === UserRole.ADMIN) && (
+            <Button
+              type="primary"
+              icon={<UserPlus className="w-4 h-4" />}
+              onClick={() => setCreateAdminModalVisible(true)}
+              className="!bg-indigo-600 hover:!bg-indigo-700 !rounded-lg !h-[34px] !px-3.5 !text-xs !font-bold flex items-center gap-1.5 shadow-xs"
+            >
+              + Yangi Admin Qo'shish
+            </Button>
+          )}
         </div>
       </div>
 
@@ -851,6 +889,26 @@ const Users = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Create New Admin Modal */}
+      <CreateAdminModal
+        visible={createAdminModalVisible}
+        onClose={() => setCreateAdminModalVisible(false)}
+        onSuccess={() => refetch()}
+        currentAdminRole={currentAdminRole}
+      />
+
+      {/* Edit Admin & User Credentials Modal */}
+      <AdminCredentialsModal
+        visible={editCredsModalVisible}
+        onClose={() => {
+          setEditCredsModalVisible(false);
+          setUserForCreds(null);
+        }}
+        onSuccess={() => refetch()}
+        user={userForCreds}
+        currentAdminRole={currentAdminRole}
+      />
     </div>
   );
 };
